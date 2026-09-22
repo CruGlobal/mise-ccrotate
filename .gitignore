@@ -1,0 +1,17 @@
+# Allowlisting gitignore
+# Ignore everything
+*
+
+# But not these files...
+!/.github/**/*
+!/.gitignore
+!/mise.toml
+
+!README.md
+!CLAUDE.md
+
+!bin/install
+!bin/list-all
+
+# ...even if they are in subdirectories
+!*/
