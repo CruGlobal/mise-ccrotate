@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a mise plugin for installing and managing the `ccrotate` tool. The plugin integrates with GitHub CLI to download and install prebuilt releases from the private CruGlobal/ccrotate repository.
 
-ccrotate is macOS only (it uses the macOS Keychain and launchd). `bin/install` checks the platform and exits with a clear message on anything else. `bin/list-all` works on any platform, so `mise ls-remote ccrotate` is a valid smoke test from Linux.
+ccrotate runs on macOS and Linux. On macOS it uses the Keychain and launchd; on Linux it uses the libsecret Secret Service (with a file fallback) and a systemd user service. `bin/install` accepts `darwin` and `linux` and exits with a clear message on anything else. `bin/list-all` works on any platform.
 
 Mise is a polyglot runtime manager that is compatible with asdf plugins, so this plugin's scripts follow asdf/mise plugin conventions.
 
@@ -25,12 +25,12 @@ Two core scripts in `bin/`:
 
 - **bin/list-all**: Fetches available versions from GitHub releases using `gh release list`. Returns versions sorted in ascending order with the `v` prefix removed.
 - **bin/install**: Downloads and installs the specified version. Key behaviors:
-  - Refuses to run unless `uname` reports `Darwin`
+  - Refuses to run unless `uname` reports `Darwin` or `Linux`
   - Refuses to run unless `gh` is installed and authenticated
   - Downloads the platform/architecture-specific tarball with `gh release download`
   - Extracts the `ccrotate` binary to `${install_path}/bin`
   - Supports architectures: amd64, arm64
-  - Prints post-install setup steps and the LaunchAgent upgrade caveat
+  - Prints post-install setup steps and the service upgrade caveat
 
 ### Environment Variables
 
@@ -45,7 +45,7 @@ Tarballs follow the pattern: `ccrotate-v{version}-{platform}-{arch}.tar.gz`, con
 
 ### Upgrade Caveat
 
-`ccrotate install` writes a LaunchAgent plist holding the absolute path of the binary. Because mise installs each version to its own directory, upgrading the tool does not upgrade the running daemon until the user re-runs `ccrotate install`. Keep this note in both the README and the install script's trailing message.
+`ccrotate install` writes a service definition holding the absolute path of the binary: a LaunchAgent plist on macOS, a systemd user unit on Linux. Because mise installs each version to its own directory, upgrading the tool does not upgrade the running daemon until the user re-runs `ccrotate install`. Keep this note in both the README and the install script's trailing message.
 
 ## Development
 
@@ -58,7 +58,7 @@ mise plugin link --force ccrotate /path/to/mise-ccrotate
 # List all versions to test list-all script (works on Linux too)
 mise ls-remote ccrotate
 
-# Install a specific version to test the install script (macOS only)
+# Install a specific version to test the install script (macOS or Linux)
 mise install ccrotate@<version>
 
 # Verify installation
